@@ -21,7 +21,6 @@ public class Projeto implements Serializable {
     private String prazo;
     private int vagas;
     private boolean encerrado;
-    private String status;
     private List<Participacao> solicitacoes;
     private List<Participacao> participantes;
     private List<String> palavrasChave;
@@ -37,7 +36,6 @@ public class Projeto implements Serializable {
         this.prazo = prazo;
         this.vagas = vagas;
         this.encerrado = false;
-        this.status = "ATIVO";
         this.solicitacoes = new ArrayList<>();
         this.participantes = new ArrayList<>();
         this.palavrasChave = new ArrayList<>();
@@ -66,7 +64,6 @@ public class Projeto implements Serializable {
     
     public void setEncerrado(boolean encerrado) {
         this.encerrado = encerrado;
-        this.status = encerrado ? "ENCERRADO" : "ATIVO";
     }
     
     public void addPalavraChave(String palavra) {
@@ -79,13 +76,6 @@ public class Projeto implements Serializable {
     
     public void adicionarSolicitacao(Participacao participacao) {
         solicitacoes.add(participacao);
-    }
-    
-    // CORRIGIDO: método para adicionar participante aprovado
-    public void addParticipanteAprovado(Participacao participacao) {
-        if (getVagasRestantes() > 0 && !participantes.contains(participacao)) {
-            participantes.add(participacao);
-        }
     }
     
     public void aprovarParticipante(Participacao participacao) {

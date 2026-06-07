@@ -32,6 +32,12 @@ public class Participacao implements Serializable {
         this.aprovado = true;
     }
     
+    public void reprovar() {
+        this.aprovado = false;
+        // Este método agora é explícito, mesmo que o valor seja false
+        // Útil para reprovar solicitações já aprovadas
+    }
+    
     public void adicionarRelatorio(Relatorio relatorio) {
         relatorios.add(relatorio);
     }

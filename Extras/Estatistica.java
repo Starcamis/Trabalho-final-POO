@@ -1,34 +1,39 @@
 package Extras;
 
 import Projeto.Projeto;
+import Projeto.Participacao;
 import usuario.Aluno;
 import usuario.Professor;
 import java.util.*;
 import java.util.stream.Collectors;
+import javax.swing.JOptionPane;
 
 public class Estatistica {
     
     public static void exibirEstatisticasGerais(List<Projeto> projetos, List<Aluno> alunos, List<Professor> professores) {
         StringBuilder sb = new StringBuilder();
         sb.append("========== ESTATÍSTICAS GERAIS ==========\n\n");
-        sb.append("📊 TOTAL DE PROJETOS: ").append(projetos.size()).append("\n");
-        sb.append("👨‍🎓 TOTAL DE ALUNOS: ").append(alunos.size()).append("\n");
-        sb.append("👨‍🏫 TOTAL DE PROFESSORES: ").append(professores.size()).append("\n");
+        sb.append(" TOTAL DE PROJETOS: ").append(projetos.size()).append("\n");
+        sb.append(" TOTAL DE ALUNOS: ").append(alunos.size()).append("\n");
+        sb.append(" TOTAL DE PROFESSORES: ").append(professores.size()).append("\n");
         
         long projetosAtivos = projetos.stream().filter(p -> !p.isEncerrado()).count();
         long projetosEncerrados = projetos.stream().filter(Projeto::isEncerrado).count();
         
-        sb.append("\n📈 PROJETOS ATIVOS: ").append(projetosAtivos).append("\n");
-        sb.append("📉 PROJETOS ENCERRADOS: ").append(projetosEncerrados).append("\n");
+        sb.append("\nPROJETOS ATIVOS: ").append(projetosAtivos).append("\n");
+        sb.append(" PROJETOS ENCERRADOS: ").append(projetosEncerrados).append("\n");
         
+        // CÓDIGO CORRIGIDO
         int totalParticipacoes = alunos.stream()
-            .mapToInt(a -> a.getParticipacoes().stream().filter(p -> p.isAprovado()).toArray().length)
+            .mapToInt(a -> (int) a.getParticipacoes().stream().filter(Participacao::isAprovado).count())
             .sum();
-        sb.append("👥 TOTAL DE PARTICIPAÇÕES APROVADAS: ").append(totalParticipacoes).append("\n");
+        
+        sb.append(" TOTAL DE PARTICIPAÇÕES APROVADAS: ").append(totalParticipacoes).append("\n");
         
         JOptionPane.showMessageDialog(null, sb.toString());
     }
     
+    // Restante da classe permanece igual...
     public static void exibirProjetosPorArea(List<Projeto> projetos) {
         Map<String, Long> projetosPorArea = projetos.stream()
             .collect(Collectors.groupingBy(Projeto::getAreaEstudo, Collectors.counting()));
@@ -36,7 +41,7 @@ public class Estatistica {
         StringBuilder sb = new StringBuilder("========== PROJETOS POR ÁREA ==========\n\n");
         projetosPorArea.entrySet().stream()
             .sorted(Map.Entry.<String, Long>comparingByValue().reversed())
-            .forEach(e -> sb.append("📚 ").append(e.getKey()).append(": ").append(e.getValue()).append(" projeto(s)\n"));
+            .forEach(e -> sb.append(" ").append(e.getKey()).append(": ").append(e.getValue()).append(" projeto(s)\n"));
         
         JOptionPane.showMessageDialog(null, sb.toString());
     }

@@ -17,30 +17,89 @@ public class InterfaceGrafica {
     private static GerenciadorNotificacoes notificador = GerenciadorNotificacoes.getInstance();
     
     public static void main(String[] args) {
-        iniciarDadosTeste();
+        carregarDados();
+        
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            salvarDados();
+        }));
+        
         mostrarMenuPrincipal();
+        salvarDados();
+    }
+    
+    private static void carregarDados() {
+        List<Aluno> alunosCarregados = GerenciadorDados.carregarAlunos();
+        List<Professor> professoresCarregados = GerenciadorDados.carregarProfessores();
+        List<Coordenador> coordenadoresCarregados = GerenciadorDados.carregarCoordenadores();
+        List<Projeto> projetosCarregados = GerenciadorDados.carregarProjetos();
+        
+        if (alunosCarregados.isEmpty() && professoresCarregados.isEmpty() && 
+            coordenadoresCarregados.isEmpty()) {
+            iniciarDadosTeste();
+        } else {
+            alunos = alunosCarregados;
+            professores = professoresCarregados;
+            coordenadores = coordenadoresCarregados;
+            projetos = projetosCarregados;
+        }
+    }
+    
+    private static void salvarDados() {
+        GerenciadorDados.salvarTodosDados(alunos, professores, coordenadores, projetos);
+    }
+    
+    private static boolean emailJaExiste(String email) {
+        for (Aluno a : alunos) {
+            if (a.getEmail().equalsIgnoreCase(email)) return true;
+        }
+        for (Professor p : professores) {
+            if (p.getEmail().equalsIgnoreCase(email)) return true;
+        }
+        for (Coordenador c : coordenadores) {
+            if (c.getEmail().equalsIgnoreCase(email)) return true;
+        }
+        return false;
+    }
+    
+    private static boolean emailValido(String email) {
+        String emailRegex = "^[A-Za-z0-9+_.-]+@(.+)$";
+        return email != null && email.matches(emailRegex);
+    }
+    
+    private static boolean matriculaJaExiste(String matricula) {
+        for (Aluno a : alunos) {
+            if (a.getMatricula().equals(matricula)) return true;
+        }
+        return false;
+    }
+    
+    private static boolean siapeJaExiste(String siape) {
+        for (Professor p : professores) {
+            if (p.getSiape().equals(siape)) return true;
+        }
+        return false;
     }
     
     private static void iniciarDadosTeste() {
         Coordenador coord = new Coordenador("Admin", "admin@ufpa.br", "admin123", "COORD001");
         coordenadores.add(coord);
         
-        Professor prof1 = new Professor("Dr. Carlos Silva", "carlos@ufpa.br", "prof123", "123456", "Computação");
-        Professor prof2 = new Professor("Dra. Ana Souza", "ana@ufpa.br", "prof123", "789012", "Matemática");
+        Professor prof1 = new Professor("Dr. Carlos Silva", "carlos@ufpa.br", "prof123", "123456", "Computacao");
+        Professor prof2 = new Professor("Dra. Ana Souza", "ana@ufpa.br", "prof123", "789012", "Matematica");
         professores.add(prof1);
         professores.add(prof2);
         
-        Aluno aluno1 = new Aluno("João Santos", "joao@ufpa.br", "aluno123", "2021001", "Ciência da Computação");
-        Aluno aluno2 = new Aluno("Maria Oliveira", "maria@ufpa.br", "aluno123", "2021002", "Matemática");
+        Aluno aluno1 = new Aluno("Joao Santos", "joao@ufpa.br", "aluno123", "2021001", "Ciencia da Computacao");
+        Aluno aluno2 = new Aluno("Maria Oliveira", "maria@ufpa.br", "aluno123", "2021002", "Matematica");
         alunos.add(aluno1);
         alunos.add(aluno2);
         
-        Projeto p1 = new Projeto("Inteligência Artificial na Educação", "Inteligência Artificial", 
-            "Projeto de pesquisa sobre aplicações de IA na educação", prof1, "01/01/2024", "31/12/2024", 3);
+        Projeto p1 = new Projeto("Inteligencia Artificial na Educacao", "Inteligencia Artificial", 
+            "Projeto de pesquisa sobre aplicacoes de IA na educacao", prof1, "01/01/2024", "31/12/2024", 3);
         Projeto p2 = new Projeto("Big Data Analytics", "Banco de Dados", 
-            "Análise de grandes volumes de dados", prof1, "01/02/2024", "30/11/2024", 2);
-        Projeto p3 = new Projeto("Criptografia Quântica", "Segurança", 
-            "Estudo avançado de criptografia quântica", prof2, "01/03/2024", "31/10/2024", 2);
+            "Analise de grandes volumes de dados", prof1, "01/02/2024", "30/11/2024", 2);
+        Projeto p3 = new Projeto("Criptografia Quantica", "Seguranca", 
+            "Estudo avancado de criptografia quantica", prof2, "01/03/2024", "31/10/2024", 2);
         projetos.add(p1);
         projetos.add(p2);
         projetos.add(p3);
@@ -58,7 +117,7 @@ public class InterfaceGrafica {
         while (true) {
             String[] opcoes = {"Login", "Cadastrar Aluno", "Cadastrar Professor", "Sair"};
             int escolha = JOptionPane.showOptionDialog(null, 
-                "=== SISTEMA DE GERENCIAMENTO DE PROJETOS ===\nUniversidade Federal do Ceará\n\nEscolha uma opção:",
+                "=== SISTEMA DE GERENCIAMENTO DE PROJETOS ===\nUniversidade Federal do Ceara\n\nEscolha uma opcao:",
                 "Sistema de Projetos", JOptionPane.DEFAULT_OPTION, JOptionPane.INFORMATION_MESSAGE,
                 null, opcoes, opcoes[0]);
             
@@ -100,40 +159,84 @@ public class InterfaceGrafica {
     private static void cadastrarAluno() {
         String nome = JOptionPane.showInputDialog("Nome completo:");
         if (nome == null) return;
+        
         String email = JOptionPane.showInputDialog("Email:");
         if (email == null) return;
+        
+        if (!emailValido(email)) {
+            JOptionPane.showMessageDialog(null, "Erro: Email invalido!", "Erro", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+        if (emailJaExiste(email)) {
+            JOptionPane.showMessageDialog(null, "Erro: Este email ja esta cadastrado!", "Erro", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+        
         String senha = JOptionPane.showInputDialog("Senha:");
         if (senha == null) return;
-        String matricula = JOptionPane.showInputDialog("Matrícula:");
+        if (senha.length() < 6) {
+            JOptionPane.showMessageDialog(null, "Erro: A senha deve ter pelo menos 6 caracteres!", "Erro", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+        
+        String matricula = JOptionPane.showInputDialog("Matricula:");
         if (matricula == null) return;
+        if (matriculaJaExiste(matricula)) {
+            JOptionPane.showMessageDialog(null, "Erro: Esta matricula ja esta cadastrada!", "Erro", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+        
         String curso = JOptionPane.showInputDialog("Curso:");
         if (curso == null) return;
         
         Aluno aluno = new Aluno(nome, email, senha, matricula, curso);
         alunos.add(aluno);
+        GerenciadorDados.salvarAlunos(alunos);
         JOptionPane.showMessageDialog(null, "Aluno cadastrado com sucesso!");
     }
     
     private static void cadastrarProfessor() {
         String nome = JOptionPane.showInputDialog("Nome completo:");
         if (nome == null) return;
+        
         String email = JOptionPane.showInputDialog("Email:");
         if (email == null) return;
+        
+        if (!emailValido(email)) {
+            JOptionPane.showMessageDialog(null, "Erro: Email invalido!", "Erro", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+        if (emailJaExiste(email)) {
+            JOptionPane.showMessageDialog(null, "Erro: Este email ja esta cadastrado!", "Erro", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+        
         String senha = JOptionPane.showInputDialog("Senha:");
         if (senha == null) return;
+        if (senha.length() < 6) {
+            JOptionPane.showMessageDialog(null, "Erro: A senha deve ter pelo menos 6 caracteres!", "Erro", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+        
         String siape = JOptionPane.showInputDialog("SIAPE:");
         if (siape == null) return;
+        if (siapeJaExiste(siape)) {
+            JOptionPane.showMessageDialog(null, "Erro: Este SIAPE ja esta cadastrado!", "Erro", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+        
         String departamento = JOptionPane.showInputDialog("Departamento:");
         if (departamento == null) return;
         
         Professor professor = new Professor(nome, email, senha, siape, departamento);
         professores.add(professor);
+        GerenciadorDados.salvarProfessores(professores);
         JOptionPane.showMessageDialog(null, "Professor cadastrado com sucesso!");
     }
     
     private static void menuAluno(Aluno aluno) {
-        String[] opcoes = {"Ver Projetos Disponíveis", "Solicitar Participação", "Meus Projetos", 
-                           "Enviar Relatório", "Ver Notificações", "Logout"};
+        String[] opcoes = {"Ver Projetos Disponiveis", "Solicitar Participacao", "Meus Projetos", 
+                           "Enviar Relatorio", "Ver Notificacoes", "Logout"};
         
         while (true) {
             int escolha = JOptionPane.showOptionDialog(null, "Menu do Aluno - " + aluno.getNome(),
@@ -160,14 +263,14 @@ public class InterfaceGrafica {
     private static void verProjetosDisponiveis(Aluno aluno) {
         List<Projeto> disponiveis = BuscaFiltros.buscarPorVagasDisponiveis(projetos);
         if (disponiveis.isEmpty()) {
-            JOptionPane.showMessageDialog(null, "Nenhum projeto disponível no momento.");
+            JOptionPane.showMessageDialog(null, "Nenhum projeto disponivel no momento.");
             return;
         }
         
-        StringBuilder sb = new StringBuilder("=== PROJETOS DISPONÍVEIS ===\n\n");
+        StringBuilder sb = new StringBuilder("=== PROJETOS DISPONIVEIS ===\n\n");
         for (Projeto p : disponiveis) {
             sb.append(p).append("\n");
-            sb.append("Descrição: ").append(p.getDescricao()).append("\n");
+            sb.append("Descricao: ").append(p.getDescricao()).append("\n");
             sb.append("Orientador: ").append(p.getOrientador().getNome()).append("\n");
             sb.append("Prazo: ").append(p.getPrazo()).append("\n\n");
         }
@@ -177,29 +280,29 @@ public class InterfaceGrafica {
     private static void solicitarParticipacao(Aluno aluno) {
         List<Projeto> disponiveis = BuscaFiltros.buscarPorVagasDisponiveis(projetos);
         if (disponiveis.isEmpty()) {
-            JOptionPane.showMessageDialog(null, "Nenhum projeto disponível.");
+            JOptionPane.showMessageDialog(null, "Nenhum projeto disponivel.");
             return;
         }
         
         String[] opcoes = disponiveis.stream().map(Projeto::toString).toArray(String[]::new);
-        int escolha = JOptionPane.showOptionDialog(null, "Selecione um projeto:", "Solicitar Participação",
+        int escolha = JOptionPane.showOptionDialog(null, "Selecione um projeto:", "Solicitar Participacao",
             JOptionPane.DEFAULT_OPTION, JOptionPane.QUESTION_MESSAGE, null, opcoes, opcoes[0]);
         
         if (escolha >= 0) {
             Projeto projeto = disponiveis.get(escolha);
             aluno.solicitarParticipacao(projeto);
-            notificador.enviarNotificacao(aluno.getEmail(), "Solicitação enviada", 
-                "Sua solicitação para o projeto " + projeto.getTitulo() + " foi enviada!");
-            notificador.enviarNotificacao(projeto.getOrientador().getEmail(), "Nova solicitação", 
-                "O aluno " + aluno.getNome() + " solicitou participação no projeto " + projeto.getTitulo());
-            JOptionPane.showMessageDialog(null, "Solicitação enviada com sucesso!");
+            notificador.enviarNotificacao(aluno.getEmail(), "Solicitacao enviada", 
+                "Sua solicitacao para o projeto " + projeto.getTitulo() + " foi enviada!");
+            notificador.enviarNotificacao(projeto.getOrientador().getEmail(), "Nova solicitacao", 
+                "O aluno " + aluno.getNome() + " solicitou participacao no projeto " + projeto.getTitulo());
+            JOptionPane.showMessageDialog(null, "Solicitacao enviada com sucesso!");
         }
     }
     
     private static void verMeusProjetos(Aluno aluno) {
         List<Projeto> meusProjetos = aluno.getProjetosAtivos();
         if (meusProjetos.isEmpty()) {
-            JOptionPane.showMessageDialog(null, "Você não está participando de nenhum projeto.");
+            JOptionPane.showMessageDialog(null, "Voce nao esta participando de nenhum projeto.");
             return;
         }
         
@@ -214,23 +317,23 @@ public class InterfaceGrafica {
     private static void enviarRelatorio(Aluno aluno) {
         List<Projeto> meusProjetos = aluno.getProjetosAtivos();
         if (meusProjetos.isEmpty()) {
-            JOptionPane.showMessageDialog(null, "Você não está em nenhum projeto para enviar relatório.");
+            JOptionPane.showMessageDialog(null, "Voce nao esta em nenhum projeto para enviar relatorio.");
             return;
         }
         
         String[] opcoes = meusProjetos.stream().map(Projeto::toString).toArray(String[]::new);
-        int escolha = JOptionPane.showOptionDialog(null, "Selecione o projeto:", "Enviar Relatório",
+        int escolha = JOptionPane.showOptionDialog(null, "Selecione o projeto:", "Enviar Relatorio",
             JOptionPane.DEFAULT_OPTION, JOptionPane.QUESTION_MESSAGE, null, opcoes, opcoes[0]);
         
         if (escolha >= 0) {
-            String conteudo = JOptionPane.showInputDialog("Digite o conteúdo do relatório:");
+            String conteudo = JOptionPane.showInputDialog("Digite o conteudo do relatorio:");
             if (conteudo != null) {
                 Projeto projeto = meusProjetos.get(escolha);
                 try {
                     aluno.enviarRelatorio(projeto, conteudo);
-                    notificador.enviarNotificacao(projeto.getOrientador().getEmail(), "Novo relatório", 
-                        "O aluno " + aluno.getNome() + " enviou um relatório para o projeto " + projeto.getTitulo());
-                    JOptionPane.showMessageDialog(null, "Relatório enviado com sucesso!");
+                    notificador.enviarNotificacao(projeto.getOrientador().getEmail(), "Novo relatorio", 
+                        "O aluno " + aluno.getNome() + " enviou um relatorio para o projeto " + projeto.getTitulo());
+                    JOptionPane.showMessageDialog(null, "Relatorio enviado com sucesso!");
                 } catch (ProjetoEncerradoException e) {
                     JOptionPane.showMessageDialog(null, "Erro: " + e.getMessage(), "Erro", JOptionPane.ERROR_MESSAGE);
                 }
@@ -239,8 +342,8 @@ public class InterfaceGrafica {
     }
     
     private static void menuProfessor(Professor professor) {
-        String[] opcoes = {"Criar Projeto", "Meus Projetos", "Validar Relatórios", 
-                           "Ver Solicitações", "Ver Notificações", "Estatísticas", "Logout"};
+        String[] opcoes = {"Criar Projeto", "Meus Projetos", "Validar Relatorios", 
+                           "Ver Solicitacoes", "Ver Notificacoes", "Estatisticas", "Logout"};
         
         while (true) {
             int escolha = JOptionPane.showOptionDialog(null, "Menu do Professor - " + professor.getNome(),
@@ -267,30 +370,43 @@ public class InterfaceGrafica {
     }
     
     private static void criarProjeto(Professor professor) {
-        String titulo = JOptionPane.showInputDialog("Título do projeto:");
+        String titulo = JOptionPane.showInputDialog("Titulo do projeto:");
         if (titulo == null) return;
-        String area = JOptionPane.showInputDialog("Área de estudo:");
+        
+        String area = JOptionPane.showInputDialog("Area de estudo:");
         if (area == null) return;
-        String descricao = JOptionPane.showInputDialog("Descrição:");
+        
+        String descricao = JOptionPane.showInputDialog("Descricao:");
         if (descricao == null) return;
-        String dataInicio = JOptionPane.showInputDialog("Data de início (dd/MM/yyyy):");
+        
+        String dataInicio = JOptionPane.showInputDialog("Data de inicio (dd/MM/yyyy):");
         if (dataInicio == null) return;
+        
         String prazo = JOptionPane.showInputDialog("Prazo (dd/MM/yyyy):");
         if (prazo == null) return;
-        String vagasStr = JOptionPane.showInputDialog("Número de vagas:");
+        
+        String vagasStr = JOptionPane.showInputDialog("Numero de vagas:");
         if (vagasStr == null) return;
         
-        int vagas = Integer.parseInt(vagasStr);
-        Projeto projeto = new Projeto(titulo, area, descricao, professor, dataInicio, prazo, vagas);
-        projetos.add(projeto);
-        professor.getProjetosCoordenados().add(projeto);
-        JOptionPane.showMessageDialog(null, "Projeto criado com sucesso!");
+        try {
+            int vagas = Integer.parseInt(vagasStr);
+            Projeto projeto = new Projeto(titulo, area, descricao, professor, dataInicio, prazo, vagas);
+            projetos.add(projeto);
+            professor.getProjetosCoordenados().add(projeto);
+            
+            GerenciadorDados.salvarProjetos(projetos);
+            GerenciadorDados.salvarProfessores(professores);
+            
+            JOptionPane.showMessageDialog(null, "Projeto criado com sucesso!");
+        } catch (NumberFormatException e) {
+            JOptionPane.showMessageDialog(null, "Erro: Numero de vagas invalido! Digite um numero inteiro.", "Erro", JOptionPane.ERROR_MESSAGE);
+        }
     }
     
     private static void verMeusProjetosProfessor(Professor professor) {
         List<Projeto> meusProjetos = professor.getProjetosCoordenados();
         if (meusProjetos.isEmpty()) {
-            JOptionPane.showMessageDialog(null, "Você não possui projetos cadastrados.");
+            JOptionPane.showMessageDialog(null, "Voce nao possui projetos cadastrados.");
             return;
         }
         
@@ -305,58 +421,63 @@ public class InterfaceGrafica {
     private static void validarRelatorios(Professor professor) {
         List<Relatorio> pendentes = professor.getRelatoriosPendentes();
         if (pendentes.isEmpty()) {
-            JOptionPane.showMessageDialog(null, "Não há relatórios pendentes.");
+            JOptionPane.showMessageDialog(null, "Nao ha relatorios pendentes.");
             return;
         }
         
-        StringBuilder sb = new StringBuilder("=== RELATÓRIOS PENDENTES ===\n\n");
+        StringBuilder sb = new StringBuilder("=== RELATORIOS PENDENTES ===\n\n");
         for (int i = 0; i < pendentes.size(); i++) {
             Relatorio r = pendentes.get(i);
             sb.append(i+1).append(". Projeto: ").append(r.getProjeto().getTitulo()).append("\n");
             sb.append("   Aluno: ").append(r.getAluno().getNome()).append("\n");
             sb.append("   Data: ").append(r.getDataEnvio()).append("\n");
-            sb.append("   Conteúdo: ").append(r.getConteudo()).append("\n\n");
+            sb.append("   Conteudo: ").append(r.getConteudo()).append("\n\n");
         }
         
-        int escolha = Integer.parseInt(JOptionPane.showInputDialog(sb.toString() + "\nDigite o número do relatório para validar:"));
-        if (escolha >= 1 && escolha <= pendentes.size()) {
-            Relatorio r = pendentes.get(escolha - 1);
-            String[] opcoes = {"Aprovar", "Reprovar"};
-            int decisao = JOptionPane.showOptionDialog(null, "Decisão sobre o relatório:", "Validar",
-                JOptionPane.DEFAULT_OPTION, JOptionPane.QUESTION_MESSAGE, null, opcoes, opcoes[0]);
-            
-            String feedback = JOptionPane.showInputDialog("Feedback para o aluno:");
-            boolean aprovado = (decisao == 0);
-            professor.validarRelatorio(r, aprovado, feedback);
-            notificador.enviarNotificacao(r.getAluno().getEmail(), "Relatório " + (aprovado ? "Aprovado" : "Reprovado"), 
-                "Seu relatório foi " + (aprovado ? "aprovado" : "reprovado") + ".\nFeedback: " + feedback);
-            JOptionPane.showMessageDialog(null, "Relatório validado com sucesso!");
+        String input = JOptionPane.showInputDialog(sb.toString() + "\nDigite o numero do relatorio para validar:");
+        if (input == null) return;
+        
+        try {
+            int escolha = Integer.parseInt(input);
+            if (escolha >= 1 && escolha <= pendentes.size()) {
+                Relatorio r = pendentes.get(escolha - 1);
+                String[] opcoes = {"Aprovar", "Reprovar"};
+                int decisao = JOptionPane.showOptionDialog(null, "Decisao sobre o relatorio:", "Validar",
+                    JOptionPane.DEFAULT_OPTION, JOptionPane.QUESTION_MESSAGE, null, opcoes, opcoes[0]);
+                
+                String feedback = JOptionPane.showInputDialog("Feedback para o aluno:");
+                if (feedback == null) return;
+                
+                boolean aprovado = (decisao == 0);
+                professor.validarRelatorio(r, aprovado, feedback);
+                notificador.enviarNotificacao(r.getAluno().getEmail(), "Relatorio " + (aprovado ? "Aprovado" : "Reprovado"), 
+                    "Seu relatorio foi " + (aprovado ? "aprovado" : "reprovado") + ".\nFeedback: " + feedback);
+                JOptionPane.showMessageDialog(null, "Relatorio validado com sucesso!");
+                
+                GerenciadorDados.salvarProfessores(professores);
+                GerenciadorDados.salvarProjetos(projetos);
+            } else {
+                JOptionPane.showMessageDialog(null, "Numero invalido!");
+            }
+        } catch (NumberFormatException e) {
+            JOptionPane.showMessageDialog(null, "Entrada invalida!");
         }
     }
     
     private static void verSolicitacoes(Professor professor) {
         List<Projeto> meusProjetos = professor.getProjetosCoordenados();
-        List<Participacao> todasSolicitacoes = new ArrayList<>();
-        for (Projeto p : meusProjetos) {
-            todasSolicitacoes.addAll(p.getParticipantes()); // solicitacoes não exposto, ajuste
-        }
         
-        // Buscar solicitações pendentes (não aprovadas)
         List<Participacao> pendentes = new ArrayList<>();
         for (Projeto p : meusProjetos) {
-            for (Participacao part : p.getSolicitacoes()) {
-                if (!part.isAprovado()) {
-                    pendentes.add(part);
-                }
-            }
+            pendentes.addAll(p.getSolicitacoesPendentes());
         }
         
         if (pendentes.isEmpty()) {
-            JOptionPane.showMessageDialog(null, "Não há solicitações pendentes.");
+            JOptionPane.showMessageDialog(null, "Nao ha solicitacoes pendentes.");
             return;
         }
         
-        StringBuilder sb = new StringBuilder("=== SOLICITAÇÕES PENDENTES ===\n\n");
+        StringBuilder sb = new StringBuilder("=== SOLICITACOES PENDENTES ===\n\n");
         for (int i = 0; i < pendentes.size(); i++) {
             Participacao part = pendentes.get(i);
             sb.append(i+1).append(". Aluno: ").append(part.getAluno().getNome()).append("\n");
@@ -364,30 +485,42 @@ public class InterfaceGrafica {
             sb.append("   Data: ").append(part.getDataSolicitacao()).append("\n\n");
         }
         
-        int escolha = Integer.parseInt(JOptionPane.showInputDialog(sb.toString() + "\nDigite o número da solicitação para avaliar:"));
-        if (escolha >= 1 && escolha <= pendentes.size()) {
-            Participacao part = pendentes.get(escolha - 1);
-            String[] opcoes = {"Aprovar", "Reprovar"};
-            int decisao = JOptionPane.showOptionDialog(null, "Decisão sobre a solicitação:", "Avaliar",
-                JOptionPane.DEFAULT_OPTION, JOptionPane.QUESTION_MESSAGE, null, opcoes, opcoes[0]);
-            
-            if (decisao == 0) {
-                part.getProjeto().aprovarParticipante(part);
-                notificador.enviarNotificacao(part.getAluno().getEmail(), "Solicitação Aprovada", 
-                    "Sua solicitação para o projeto " + part.getProjeto().getTitulo() + " foi aprovada!");
-                JOptionPane.showMessageDialog(null, "Solicitação aprovada!");
+        String input = JOptionPane.showInputDialog(sb.toString() + "\nDigite o numero da solicitacao para avaliar:");
+        if (input == null) return;
+        
+        try {
+            int escolha = Integer.parseInt(input);
+            if (escolha >= 1 && escolha <= pendentes.size()) {
+                Participacao part = pendentes.get(escolha - 1);
+                String[] opcoes = {"Aprovar", "Reprovar"};
+                int decisao = JOptionPane.showOptionDialog(null, "Decisao sobre a solicitacao:", "Avaliar",
+                    JOptionPane.DEFAULT_OPTION, JOptionPane.QUESTION_MESSAGE, null, opcoes, opcoes[0]);
+                
+                if (decisao == 0) {
+                    part.getProjeto().aprovarParticipante(part);
+                    notificador.enviarNotificacao(part.getAluno().getEmail(), "Solicitacao Aprovada", 
+                        "Sua solicitacao para o projeto " + part.getProjeto().getTitulo() + " foi aprovada!");
+                    JOptionPane.showMessageDialog(null, "Solicitacao aprovada!");
+                } else if (decisao == 1) {
+                    part.getProjeto().reprovarParticipante(part);
+                    notificador.enviarNotificacao(part.getAluno().getEmail(), "Solicitacao Reprovada", 
+                        "Sua solicitacao para o projeto " + part.getProjeto().getTitulo() + " foi reprovada.");
+                    JOptionPane.showMessageDialog(null, "Solicitacao reprovada!");
+                }
+                
+                GerenciadorDados.salvarProjetos(projetos);
+                GerenciadorDados.salvarAlunos(alunos);
             } else {
-                part.getProjeto().reprovarParticipante(part);
-                notificador.enviarNotificacao(part.getAluno().getEmail(), "Solicitação Reprovada", 
-                    "Sua solicitação para o projeto " + part.getProjeto().getTitulo() + " foi reprovada.");
-                JOptionPane.showMessageDialog(null, "Solicitação reprovada!");
+                JOptionPane.showMessageDialog(null, "Numero invalido!");
             }
+        } catch (NumberFormatException e) {
+            JOptionPane.showMessageDialog(null, "Entrada invalida!");
         }
     }
     
     private static void menuCoordenador(Coordenador coordenador) {
-        String[] opcoes = {"Gerenciar Projetos", "Gerenciar Usuários", "Ver Estatísticas", 
-                           "Ver Notificações", "Logout"};
+        String[] opcoes = {"Gerenciar Projetos", "Gerenciar Usuarios", "Ver Estatisticas", 
+                           "Ver Notificacoes", "Logout"};
         
         while (true) {
             int escolha = JOptionPane.showOptionDialog(null, "Menu do Coordenador - " + coordenador.getNome(),
@@ -422,35 +555,53 @@ public class InterfaceGrafica {
             }
             JOptionPane.showMessageDialog(null, sb.toString());
         } else if (escolha == 1) {
-            // Selecionar professor orientador
             Professor[] profArray = professores.toArray(new Professor[0]);
             Professor selected = (Professor) JOptionPane.showInputDialog(null, "Selecione o orientador:", 
                 "Novo Projeto", JOptionPane.QUESTION_MESSAGE, null, profArray, profArray[0]);
             if (selected != null) {
-                String titulo = JOptionPane.showInputDialog("Título:");
-                String area = JOptionPane.showInputDialog("Área:");
-                String desc = JOptionPane.showInputDialog("Descrição:");
-                String dataIni = JOptionPane.showInputDialog("Data início:");
+                String titulo = JOptionPane.showInputDialog("Titulo:");
+                String area = JOptionPane.showInputDialog("Area:");
+                String desc = JOptionPane.showInputDialog("Descricao:");
+                String dataIni = JOptionPane.showInputDialog("Data inicio:");
                 String prazo = JOptionPane.showInputDialog("Prazo:");
-                int vagas = Integer.parseInt(JOptionPane.showInputDialog("Vagas:"));
-                Projeto p = new Projeto(titulo, area, desc, selected, dataIni, prazo, vagas);
-                projetos.add(p);
-                selected.getProjetosCoordenados().add(p);
-                JOptionPane.showMessageDialog(null, "Projeto adicionado!");
+                
+                String vagasStr = JOptionPane.showInputDialog("Vagas:");
+                if (vagasStr != null) {
+                    try {
+                        int vagas = Integer.parseInt(vagasStr);
+                        Projeto p = new Projeto(titulo, area, desc, selected, dataIni, prazo, vagas);
+                        projetos.add(p);
+                        selected.getProjetosCoordenados().add(p);
+                        GerenciadorDados.salvarProjetos(projetos);
+                        GerenciadorDados.salvarProfessores(professores);
+                        JOptionPane.showMessageDialog(null, "Projeto adicionado!");
+                    } catch (NumberFormatException e) {
+                        JOptionPane.showMessageDialog(null, "Numero de vagas invalido!");
+                    }
+                }
             }
         } else if (escolha == 2) {
             Projeto[] projArray = projetos.toArray(new Projeto[0]);
             Projeto selected = (Projeto) JOptionPane.showInputDialog(null, "Selecione o projeto:", 
                 "Editar Projeto", JOptionPane.QUESTION_MESSAGE, null, projArray, projArray[0]);
             if (selected != null) {
-                String novoTitulo = JOptionPane.showInputDialog("Novo título:", selected.getTitulo());
-                String novaArea = JOptionPane.showInputDialog("Nova área:", selected.getAreaEstudo());
-                String novaDesc = JOptionPane.showInputDialog("Nova descrição:", selected.getDescricao());
-                String novaDataIni = JOptionPane.showInputDialog("Nova data início:", selected.getDataInicio());
+                String novoTitulo = JOptionPane.showInputDialog("Novo titulo:", selected.getTitulo());
+                String novaArea = JOptionPane.showInputDialog("Nova area:", selected.getAreaEstudo());
+                String novaDesc = JOptionPane.showInputDialog("Nova descricao:", selected.getDescricao());
+                String novaDataIni = JOptionPane.showInputDialog("Nova data inicio:", selected.getDataInicio());
                 String novoPrazo = JOptionPane.showInputDialog("Novo prazo:", selected.getPrazo());
-                int novasVagas = Integer.parseInt(JOptionPane.showInputDialog("Novas vagas:", selected.getVagas()));
-                coordenador.editarProjeto(selected, novoTitulo, novaArea, novaDesc, novaDataIni, novoPrazo, novasVagas);
-                JOptionPane.showMessageDialog(null, "Projeto editado!");
+                
+                String novasVagasStr = JOptionPane.showInputDialog("Novas vagas:", selected.getVagas());
+                if (novasVagasStr != null) {
+                    try {
+                        int novasVagas = Integer.parseInt(novasVagasStr);
+                        coordenador.editarProjeto(selected, novoTitulo, novaArea, novaDesc, novaDataIni, novoPrazo, novasVagas);
+                        GerenciadorDados.salvarProjetos(projetos);
+                        JOptionPane.showMessageDialog(null, "Projeto editado!");
+                    } catch (NumberFormatException e) {
+                        JOptionPane.showMessageDialog(null, "Numero de vagas invalido!");
+                    }
+                }
             }
         } else if (escolha == 3) {
             Projeto[] projArray = projetos.toArray(new Projeto[0]);
@@ -458,14 +609,15 @@ public class InterfaceGrafica {
                 "Remover Projeto", JOptionPane.QUESTION_MESSAGE, null, projArray, projArray[0]);
             if (selected != null) {
                 coordenador.removerProjeto(selected, projetos);
+                GerenciadorDados.salvarProjetos(projetos);
                 JOptionPane.showMessageDialog(null, "Projeto removido!");
             }
         }
     }
     
     private static void gerenciarUsuarios(Coordenador coordenador) {
-        String[] opcoes = {"Listar Alunos", "Listar Professores", "Ativar/Desativar Usuário"};
-        int escolha = JOptionPane.showOptionDialog(null, "Gerenciar Usuários", "Coordenador",
+        String[] opcoes = {"Listar Alunos", "Listar Professores", "Ativar/Desativar Usuario"};
+        int escolha = JOptionPane.showOptionDialog(null, "Gerenciar Usuarios", "Coordenador",
             JOptionPane.DEFAULT_OPTION, JOptionPane.INFORMATION_MESSAGE, null, opcoes, opcoes[0]);
         
         if (escolha == 0) {
@@ -483,20 +635,29 @@ public class InterfaceGrafica {
         } else if (escolha == 2) {
             List<Usuario> todos = obterTodosUsuarios();
             Usuario[] userArray = todos.toArray(new Usuario[0]);
-            Usuario selected = (Usuario) JOptionPane.showInputDialog(null, "Selecione o usuário:", 
+            Usuario selected = (Usuario) JOptionPane.showInputDialog(null, "Selecione o usuario:", 
                 "Ativar/Desativar", JOptionPane.QUESTION_MESSAGE, null, userArray, userArray[0]);
             if (selected != null) {
                 boolean novoStatus = !selected.isAtivo();
                 coordenador.gerenciarUsuario(selected, novoStatus);
-                JOptionPane.showMessageDialog(null, "Usuário " + selected.getNome() + " agora está " + 
+                
+                if (selected instanceof Aluno) {
+                    GerenciadorDados.salvarAlunos(alunos);
+                } else if (selected instanceof Professor) {
+                    GerenciadorDados.salvarProfessores(professores);
+                } else if (selected instanceof Coordenador) {
+                    GerenciadorDados.salvarCoordenadores(coordenadores);
+                }
+                
+                JOptionPane.showMessageDialog(null, "Usuario " + selected.getNome() + " agora esta " + 
                     (novoStatus ? "ATIVO" : "INATIVO"));
             }
         }
     }
     
     private static void mostrarEstatisticas() {
-        String[] opcoes = {"Estatísticas Gerais", "Projetos por Área", "Projetos Mais Ativos"};
-        int escolha = JOptionPane.showOptionDialog(null, "Estatísticas", "Relatórios",
+        String[] opcoes = {"Estatisticas Gerais", "Projetos por Area", "Projetos Mais Ativos"};
+        int escolha = JOptionPane.showOptionDialog(null, "Estatisticas", "Relatorios",
             JOptionPane.DEFAULT_OPTION, JOptionPane.INFORMATION_MESSAGE, null, opcoes, opcoes[0]);
         
         if (escolha == 0) {

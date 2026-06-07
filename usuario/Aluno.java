@@ -3,9 +3,13 @@ package usuario;
 import Projeto.Participacao;
 import Projeto.Projeto;
 import Projeto.Relatorio;
+import exceptions.ProjetoEncerradoException;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
+
+import javax.swing.JOptionPane;
 
 public class Aluno extends Usuario {
     private String matricula;
@@ -43,13 +47,22 @@ public class Aluno extends Usuario {
         projeto.adicionarSolicitacao(participacao);
     }
     
-    public void enviarRelatorio(Projeto projeto, String conteudo) {
-        Participacao participacao = getParticipacaoPorProjeto(projeto);
-        if (participacao != null && participacao.isAprovado()) {
-            Relatorio relatorio = new Relatorio(this, projeto, conteudo);
-            participacao.adicionarRelatorio(relatorio);
+   public void enviarRelatorio(Projeto projeto, String conteudo) {
+    Participacao participacao = getParticipacaoPorProjeto(projeto);
+    if (participacao != null && participacao.isAprovado()) {
+
+        if (projeto.isEncerrado()) {
+            throw new ProjetoEncerradoException("Não é possível enviar relatório para projeto encerrado!");
         }
+        
+        Relatorio relatorio = new Relatorio(this, projeto, conteudo);
+        participacao.adicionarRelatorio(relatorio);
+        
+       
+    } else {
+        JOptionPane.showMessageDialog(null, "Você não está participando deste projeto ou sua participação não foi aprovada!");
     }
+}
     
     public void concluirProjeto(Projeto projeto) {
         Participacao participacao = getParticipacaoPorProjeto(projeto);
