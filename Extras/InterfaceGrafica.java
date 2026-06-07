@@ -381,10 +381,41 @@ public class InterfaceGrafica {
         
         String dataInicio = JOptionPane.showInputDialog("Data de inicio (dd/MM/yyyy):");
         if (dataInicio == null) return;
+
+        if (!dataValida(dataInicio)) {
+            JOptionPane.showMessageDialog(null,
+                    "Erro: Data de início inválida ou no passado!",
+                    "Erro", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
         
         String prazo = JOptionPane.showInputDialog("Prazo (dd/MM/yyyy):");
         if (prazo == null) return;
-        
+
+        if (!dataValida(prazo)) {
+            JOptionPane.showMessageDialog(null,
+                    "Erro: Prazo inválido ou no passado!",
+                    "Erro", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        try {
+            java.time.format.DateTimeFormatter fmt =
+                    java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy");
+            java.time.LocalDate inicio = java.time.LocalDate.parse(dataInicio, fmt);
+            java.time.LocalDate fim = java.time.LocalDate.parse(prazo, fmt);
+
+            if (!fim.isAfter(inicio)) {
+                JOptionPane.showMessageDialog(null,
+                        "Erro: O prazo deve ser posterior à data de início!",
+                        "Erro", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(null, "Erro: Formato de data inválido! Use dd/MM/yyyy.",
+                    "Erro", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
         String vagasStr = JOptionPane.showInputDialog("Numero de vagas:");
         if (vagasStr == null) return;
         
@@ -541,6 +572,18 @@ public class InterfaceGrafica {
             }
         }
     }
+
+    private static boolean dataValida(String data) {
+        try {
+            java.time.format.DateTimeFormatter fmt =
+                    java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy");
+            java.time.LocalDate dataInformada = java.time.LocalDate.parse(data, fmt);
+            return !dataInformada.isBefore(java.time.LocalDate.now());
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
     
     private static void gerenciarProjetos(Coordenador coordenador) {
         String[] opcoes = {"Listar Projetos", "Adicionar Projeto", "Editar Projeto", "Remover Projeto"};
@@ -562,8 +605,19 @@ public class InterfaceGrafica {
                 String titulo = JOptionPane.showInputDialog("Titulo:");
                 String area = JOptionPane.showInputDialog("Area:");
                 String desc = JOptionPane.showInputDialog("Descricao:");
-                String dataIni = JOptionPane.showInputDialog("Data inicio:");
-                String prazo = JOptionPane.showInputDialog("Prazo:");
+                String dataIni = JOptionPane.showInputDialog("Data inicio (dd/MM/yyyy):");
+                String prazo = JOptionPane.showInputDialog("Prazo (dd/MM/yyyy):");
+
+                if (!dataValida(dataIni)) {
+                    JOptionPane.showMessageDialog(null, "Erro: Data de início inválida ou no passado!",
+                            "Erro", JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
+                if (!dataValida(prazo)) {
+                    JOptionPane.showMessageDialog(null, "Erro: Prazo inválido ou no passado!",
+                            "Erro", JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
                 
                 String vagasStr = JOptionPane.showInputDialog("Vagas:");
                 if (vagasStr != null) {
@@ -590,7 +644,17 @@ public class InterfaceGrafica {
                 String novaDesc = JOptionPane.showInputDialog("Nova descricao:", selected.getDescricao());
                 String novaDataIni = JOptionPane.showInputDialog("Nova data inicio:", selected.getDataInicio());
                 String novoPrazo = JOptionPane.showInputDialog("Novo prazo:", selected.getPrazo());
-                
+
+                if (!dataValida(novaDataIni)) {
+                    JOptionPane.showMessageDialog(null, "Erro: Data de início inválida ou no passado!",
+                            "Erro", JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
+                if (!dataValida(novoPrazo)) {
+                    JOptionPane.showMessageDialog(null, "Erro: Prazo inválido ou no passado!",
+                            "Erro", JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
                 String novasVagasStr = JOptionPane.showInputDialog("Novas vagas:", selected.getVagas());
                 if (novasVagasStr != null) {
                     try {
